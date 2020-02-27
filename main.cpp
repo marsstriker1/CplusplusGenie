@@ -883,7 +883,7 @@ void windows::workScreen()
         glVertex2f(9.5,9.5);
     glEnd();
 
-    printText(7.5,8.8,"Log Out",GLUT_BITMAP_HELVETICA_18,0,0,0);
+    printText(7.5,8.9,"Log Out",GLUT_BITMAP_HELVETICA_18,0,0,0);
 
     glColor3f(0.78,0.749,0.9055); //color of glut polygon
 
@@ -910,7 +910,7 @@ void windows::todoScreen()
         glVertex2f(9.5,9.5);
     glEnd();
 
-    printText(8.3,8.8,"Back",GLUT_BITMAP_HELVETICA_18,0,0,0);
+    printText(8.3,8.9,"Back",GLUT_BITMAP_HELVETICA_18,0,0,0);
     glColor3f(0.78,0.749,0.9055); //color of glut polygon
 
     glBegin(GL_POLYGON);  //description box
@@ -1007,7 +1007,8 @@ void windows::todoScreen()
                 for(int popper=0;popper<4;popper++)
                     files[i].pop_back();
 
-                glColor3f(0.10,0.4,0);
+                //glColor3f(0.10,0.4,0);
+                glColor3f(0.5,0.5,1);
                 for(int d=0;d<numFile;d++)
                 {
                     glDrawP(todo_x+10,todo_y-2.3-static_cast<float>(i)/2,2.4,0.4);
