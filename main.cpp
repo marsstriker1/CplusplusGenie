@@ -900,6 +900,8 @@ void windows::workScreen()
 void windows::todoScreen()
 {
 
+    glRasterPos2f(-2,9);
+    printText(-2.25,8.8,("Hi,"+userName).c_str(),GLUT_BITMAP_HELVETICA_18,1,1,0);
     glColor3f(1,1,1);
     glBegin(GL_POLYGON);    //BACK BUTTON
         glVertex2f(9.5,8.7);
