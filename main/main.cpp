@@ -10,8 +10,8 @@
 #include "Headers/TodoList.h"
 #include "Headers/menu.h"
 #include "Headers/vars.h"
-#include "Headers/logIn.h"
-
+//#include "Headers/logIn.h"
+#include "Headers/SearchEnginePage.h"
 
 #define WID 700
 #define HEI 650
@@ -35,6 +35,7 @@ void initColor();//color of the window
 void ReshapeCallBack(int wid, int heig); // in case of change in window size,avoid distortion
 void mouseclicked(int button,int state,int x,int y);//action of mouse click
 void keyPressed(unsigned char key,int x, int y); //keyboard
+void passMouse(int x,int y);
 
 class windows{
 private:
@@ -60,27 +61,30 @@ GLfloat Xc=2.0;
 GLfloat Yc=3.0;
 GLfloat pageNo=-1;
 
-std::string *files;
 std::string userName="";
 std::string password="";
 std::string userNameN="";
 std::string passwordN="";
 std::string desText="";
 std::string dueText="";
+std::string desFFile="";
+std::string dateFFile="";
+std::string *files;
 
 int bossel =1;
 int enterCount=0;
+float x_pos =-10.0;
 int dir = 1;
+float dx, dy;
+float todo_x=-8;
+float todo_y=-2;
 int numFile;
 
-float x_pos =-10.0;
-float todo_x=-8;
-float todo_y=2;
-float dx,dy;
 
 long long unsigned int blinkera =0;
 long long unsigned int blinkerb =0;
 long long unsigned int blinkerc =0;
+long unsigned int timer=0;
 
 bool showTextUserName =true;
 bool showTextPass = false;
@@ -91,7 +95,9 @@ bool showDueDate=false;
 bool validLogIn=false;
 bool showTodo =false;
 bool showTodoList=true;
-
+bool mouseAtExit =false;
+bool falseLogin=false;
+bool falseSignup=false;
 
 //GLUT functions
 
@@ -104,10 +110,11 @@ int main(int argc, char ** argv)    //default arguments of main
     glutInitWindowSize(WID,HEI); //width and height of windows in pixels
     int mpar = glutCreateWindow("C++Genie");    //defines the name of the window
 
-
     glutDisplayFunc(callBackFun); //takes function pointer and is used to draw on window
     glutReshapeFunc(ReshapeCallBack);//used to register a callback , argument function pointer
     glutMouseFunc(mouseclicked);//mouse click function redirects to different pages
+    glutMotionFunc(SearchWindow::OnMouseDrag);  //mouse dragged callback function
+    glutPassiveMotionFunc(passMouse);
     glutKeyboardFunc(keyPressed);//keyboard press function
 
     //if(pageNo==1)
@@ -161,6 +168,7 @@ void callBackFun()    //Call  back function to draw on the window
 void initColor() //Sets initial Background Color of the window
 {
     glClearColor(WC_R,WC_G,WC_B,WC_A); // RGB and Alpha  //color intensity of color of screen
+    SearchWindow::create();
 }
 
 void ReshapeCallBack(int wid, int heig)// width and height passed by the API
@@ -185,8 +193,11 @@ void keyPressed(unsigned char pressedKey,int x,int y)
                 }
                 else if(logine.IsLogedIn()){
                     pageNo=1;               //to working page
+                    SearchWindow::setUser(userName);
                 }
-                else{
+                else
+                {
+                    falseLogin=true;
                     std::cout<<"\ninvalid Login\n";
                 }
     }
@@ -194,6 +205,25 @@ void keyPressed(unsigned char pressedKey,int x,int y)
     {
         showTodo=true;
         showDes=true;
+    }
+    if(pressedKey==ENTER_KEY && enterCount==6 && pageNo==10)
+    {
+        if(userNameN!="" && passwordN!="")
+               {
+                   signUp signup(userNameN,passwordN);   //sign up class
+                   if(signup.valid())
+                   {
+                        signup.signup();   //create sign up file
+                        signup.createTodoDirectory();
+                        pageNo=1;
+                        userName=userNameN;
+                   }
+                   else
+                   {
+                       falseSignup=true;
+                    std::cout<<"Invalid! SIGN UP.";
+                   }
+               }
     }
 
    if(pressedKey==8 && pageNo==0)
@@ -270,6 +300,7 @@ void keyPressed(unsigned char pressedKey,int x,int y)
     }
     else if (pageNo==1)
     {
+        SearchWindow::OnKeyPressed(pressedKey, x, y);
     }
     else if(pageNo==2)
     {
@@ -304,18 +335,24 @@ void keyPressed(unsigned char pressedKey,int x,int y)
     if(pageNo==10)
     {
         if(bossel==1 || bossel==2 )
+        {
             bossel=5;
+            enterCount=5;
+        }
+
 
         if(pressedKey>=36 && pressedKey <=126)
         {
             if(bossel==5)
             {
+                enterCount=5;
                 userNameN+=pressedKey;
                 showTextUserNameN=true;
             }
 
             else if(bossel==6)
             {
+                enterCount=6;//.
                 passwordN+=pressedKey;
                 showTextPassN=true;
             }
@@ -325,6 +362,7 @@ void keyPressed(unsigned char pressedKey,int x,int y)
 
     if (pressedKey == ENTER_KEY || pressedKey == TAB_KEY)
         {
+            enterCount=6;//.
             showTextPassN=true;
             bossel=6;
 
@@ -348,6 +386,7 @@ void mouseclicked(int button,int state,int a,int b)
        //std::cout<<"\nMAX-X="<<x<<"\tMAX-YY="<<y<<"\n";
     }
 
+
 if(pageNo==-1)          //Welcome Page
 {
     if(button == GLUT_LEFT_BUTTON && state == GLUT_DOWN)
@@ -366,18 +405,28 @@ if(pageNo==0)       //login page
 {
     if(button == GLUT_LEFT_BUTTON && state == GLUT_DOWN)
      {
+         if((x<=680 && x>=635) && (y>=15 && y<=40)) //EXIT BUTTON
+         {
+             ExitProcess(0);
+         }
+
+
         if((x>=300 && x<=450) && (y>=440 && y<=495)) //login page to working page
            {
                 logIn login(userName,password);   //login class
                 validLogIn=login.IsLogedIn();   //validate login
-                if(userName==""){
+                if(userName=="")
+                    {
+                        falseLogin=true;
+
                     std::cout<<"\nInvalid Login khali\n";
-                    pageNo=0;
+                    //pageNo=0;
                 }
                 else if(validLogIn){
                     pageNo=1;               //to working page
                 }
                 else{
+                        falseLogin=true;
                     std::cout<<"\ninvalid Login\n";
                 }
            }
@@ -417,16 +466,23 @@ if(pageNo==10)      //SignUp Page
                if(userNameN!="" && passwordN!="")
                {
                    signUp signup(userNameN,passwordN);   //sign up class
-                    signup.signup();   //create sign up file
-                    signup.createTodoDirectory();
-                    pageNo=1;
-                    userName=userNameN;
-
+                   if(signup.valid())
+                   {
+                        signup.signup();   //create sign up file
+                        signup.createTodoDirectory();
+                        pageNo=1;
+                        userName=userNameN;
+                   }
+                   else
+                   {
+                       falseSignup=true;
+                    std::cout<<"Invalid! SIGN UP.";
+                   }
                }
            }
-
         if((x<=560 && x>=140) && (y<=275 && y>=210))
         {
+            enterCount=5;
             bossel=5;
             showTextUserNameN=true;
             showTextPassN=false;
@@ -435,6 +491,7 @@ if(pageNo==10)      //SignUp Page
 
         if((x<=560 && x>=140) && (y<=405 && y>=340))
         {
+            enterCount=6;
             bossel=6;
             showTextPassN=true;
             //showTextUserName=false;
@@ -450,25 +507,13 @@ if(pageNo==10)      //SignUp Page
     }
 }
 
-/*if(pageNo!=-1) //BACK BUTTON
-{
-    if(button == GLUT_LEFT_BUTTON && state == GLUT_DOWN)
-    {
-    if((x<=680 || x>=635) && (y>=15 && y<=40)) //return back page
-            {
-                if(pageNo!=0 && pageNo!=10)
-                    pageNo--;
-                else
-                    pageNo=-1;
-            }
-    }
-}*/
+
 if(pageNo==1)
 {
-
+    SearchWindow::mouseFunc(button,state, a, b);
     if(button == GLUT_LEFT_BUTTON && state == GLUT_DOWN)
     {
-            if((x<=680 || x>=635) && (y>=15 && y<=40)) //Log Out
+            if((x<=680 && x>=635) && (y>=15 && y<=40)) //Log Out
             {
                 pageNo=0;
                 userName="";
@@ -476,12 +521,12 @@ if(pageNo==1)
                 showTextUserName=true;
                 showTextPass=false;
                 bossel=1;
+                enterCount=0;
             }
-            if((x>=510 || x<=670) && (y>=95 && y<=145)) //from working page to to do page
+            if((x>=510 && x<=670) && (y>=95 && y<=145)) //from working page to to do page
             {
                 pageNo=2;
             }
-
     }
 
 }
@@ -490,9 +535,11 @@ if(pageNo==2)       //TO DO Page
 {
     if(button == GLUT_LEFT_BUTTON && state == GLUT_DOWN)
     {
+        //std::cout<<" hi hi \n";
         dx=toFloatX(x);
         dy=toFloatY(y);
-        for(int i=0;i<numFile;i++)
+
+        for(int i=0; i<numFile ;i++)
         {
             if((dx>todo_x+10 && dx<todo_x+12.4) && (dy<todo_y-2.5-(static_cast<float>(i)/2) && dy>todo_y-(static_cast<float>(i)/2)-2.9))
             {
@@ -533,14 +580,22 @@ if(pageNo==2)       //TO DO Page
 }
     glutPostRedisplay();
 }
-
-
+void passMouse(int x, int y)
+{
+    if((x<=680 && x>=635) && (y>=15 && y<=40) && pageNo==0) //EXIT BUTTON
+//if((x<=9.5 && x>=7.4) && (y>=8.7 && y<=9.5))
+    {
+        mouseAtExit=true;
+    }
+    else
+    {
+        mouseAtExit=false;
+    }
+}
 //class windows functions
 
 void windows::welcomePage()
 {
-
-
     glColor3f(1,1,0);
     glBegin(GL_POLYGON);
         glVertex2f(lx+.5,ly+0.5);
@@ -700,10 +755,43 @@ void windows::signUpPage()
         glVertex2f(X-1.1,Y-5.6);
     glColor3f(1,1,0);
     glEnd();
+    if(falseSignup)
+    {
+        timer++;
+        mglErrorMsg("INVALID SIGNUP!","Password must contain at least","one alphabet, special character and digit.");
+        if(timer>500)
+        {
+            falseSignup=false;
+            timer=0;
+        }
+    }
 }
 
 void windows::loginPage()
 {
+    if(mouseAtExit)
+    {
+        glColor3f(0.9,0.1,0.1);       //EXIT
+    }
+    else
+    {
+        glColor3f(WC_R,WC_G,WC_B);
+        mouseAtExit=false;
+    }
+
+
+    glBegin(GL_POLYGON);
+        glVertex2f(9.5,8.7);
+        glVertex2f(7.4,8.7);
+        glVertex2f(7.4,9.5);
+        glVertex2f(9.5,9.5);
+    glEnd();
+
+    printText(7.5,8.9,"  EXIT",GLUT_BITMAP_HELVETICA_18,1,1,1);
+
+
+
+
     printText(-X+5.5,Y+0.51,"LOG IN",GLUT_BITMAP_TIMES_ROMAN_24,1.0,0.7,0);
     printText(-X+1,Y-1,"User-name",GLUT_BITMAP_8_BY_13,1,1,0);
     printText(-X+1,-Y+5,"Password",GLUT_BITMAP_8_BY_13,1,1,0);
@@ -866,6 +954,18 @@ void windows::loginPage()
         glVertex2f(X-1.1,Y-5.6);
     glColor3f(1,1,0);
     glEnd();
+
+    if(falseLogin)
+    {
+        timer++;
+        mglErrorMsg("INVALID LOGIN!","Sign Up if you haven't already");
+                    glColor3f(1,1,0);
+        if(timer>500)
+        {
+            falseLogin=false;
+            timer=0;
+        }
+    }
 }
 
 void windows::workScreen()
@@ -893,6 +993,8 @@ void windows::workScreen()
     glEnd();
 
     printText(5.8,6.2,"ToDo list",GLUT_BITMAP_8_BY_13,0,0,0);
+
+    SearchWindow::makeObjects();
 }
 
 void windows::todoScreen()
@@ -978,6 +1080,7 @@ void windows::todoScreen()
     }
     todoNum.setDirName(std::string("./"+userName+"/Todo/").c_str());
     todoNum.setFileNames();
+
     numFile=todoNum.getFileNumber();
 
     files = new string[numFile];
@@ -1001,30 +1104,26 @@ void windows::todoScreen()
 
             printText(todo_x-1,todo_y-1,"TODO LIST",GLUT_BITMAP_TIMES_ROMAN_24,1,1,1);
             printText(todo_x-0.5,todo_y-2,"Tasks\t\t\t\t",GLUT_BITMAP_HELVETICA_18,1,1,1);
+            printText(todo_x+4,todo_y-2,"Due Date",GLUT_BITMAP_HELVETICA_18,1,1,1);
 
                 for(int popper=0;popper<4;popper++)
                     files[i].pop_back();
 
-                //glColor3f(0.10,0.4,0);
-                glColor3f(0.5,0.5,1);
+
+
+                glColor3f(1,0.1,0.1);
+
                 for(int d=0;d<numFile;d++)
                 {
                     glDrawP(todo_x+10,todo_y-2.3-static_cast<float>(i)/2,2.4,0.4);
                 }
                 printText(todo_x-0.5,todo_y-2.5-(0.5*i),(files[i]).c_str(),GLUT_BITMAP_8_BY_13,1,1,1);
                 printText(todo_x+4,todo_y-2.5-(0.5*i),(task[i]).c_str(),GLUT_BITMAP_8_BY_13,1,1,1);
-                printText(todo_x+10.15,todo_y-2.6-(0.5*i),"Delete",GLUT_BITMAP_8_BY_13,0,0,0);
-
+                printText(todo_x+10.15,todo_y-2.6-(0.5*i)," Delete",GLUT_BITMAP_8_BY_13,1,1,1);
             }
-
         }
-
     }
-
-
-
 }
-
 
 //feature functions
 
