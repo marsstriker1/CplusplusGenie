@@ -225,6 +225,7 @@ namespace action
                     signup.createTodoDirectory();
                     pageNo=WORKING_P;
                     userName=userNameN;
+                    SearchWindow::setUser(userName);
                 }
                 else
                     createErrorWindow("Password must contain special character, alphabet & digit");
@@ -569,7 +570,7 @@ void mouseclicked(int button,int state,int a,int b)
         }
         else if (pageNo==SIGNUP_P)
         {
-            signUp sup;
+            signUp sup(userNameN,passwordN);
             signUpN::mouse(x,y,sup);
         }
         else if(pageNo==WORKING_P)

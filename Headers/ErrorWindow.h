@@ -5,7 +5,7 @@ namespace ErrorWindow
     int index;
     bool canMake = true;
     int mainWindowIndex;
-    std::string errorText;
+    string errorText;
     void destroy()
     {
         glutDestroyWindow(index);
@@ -16,10 +16,22 @@ namespace ErrorWindow
     {
       glColor3f(0,0,0);
       glRasterPos2d(x,y);
-      for (int i=0;i<text.size();i++)
+      if(text.size()>40)
       {
-        glutBitmapCharacter(font,text[i]);
+          for (int i=0;i<40;i++)
+            glutBitmapCharacter(font,text[i]);
+
+          glRasterPos2d(x,y-0.13*1.5);
+
+          for(int i=40;i<text.size();i++)
+            glutBitmapCharacter(font,text[i]);
       }
+      else
+      {
+        for (int i=0;i<text.size();i++)
+            glutBitmapCharacter(font,text[i]);
+      }
+
       glutPostRedisplay();
     }
 

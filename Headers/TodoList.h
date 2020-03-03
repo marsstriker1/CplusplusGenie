@@ -109,6 +109,4 @@ string createDirectory1()
 
         return dirpath;
     }
-
-
 };
