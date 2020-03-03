@@ -1,8 +1,3 @@
-#include <fstream>
-#include <string>
-#include <iostream>
-#include<dirent.h>
-
 
 #include"SearchEngine.h"
 
@@ -78,6 +73,7 @@ signUp(std::string username,std::string password):username(std::move(username)),
         else
         {
             d1.createDir();
+            d1.hidedir();
         }
 
         return dirpath;
@@ -98,6 +94,21 @@ signUp(std::string username,std::string password):username(std::move(username)),
         { std::cout<<"\nSearch directory already exists"; }
         else
         { d1.createDir(); }
+
+    }
+
+    bool userExists()
+    {
+        DirectoryHandler checkuserDhl;
+        checkuserDhl.setDirName("./");
+        checkuserDhl.setDirForUse();
+        checkuserDhl.displayfile();
+    for(int i=0;i<checkuserDhl.dirDi.getsize();i++)
+    {
+        if(checkuserDhl.dirDi.getinfo(i) == username)
+            return true;
+    }
+    return false;
 
     }
 };

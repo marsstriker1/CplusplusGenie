@@ -2,21 +2,29 @@
 class DisplayInfo
 {
 private:
-    string* info;
+    std::string* info;
     int size;
 public:
     DisplayInfo()
-    { size = 0;}
+    { size = 0;
+    info = 0;}
     int getsize()
     { return size; }
-    string* getstring()
+    std::string* getinfo()
     { return info;}
+    std::string getinfo(int i)
+    {
+        if(i<size)
+        return info[i];
+        else
+            return std::string("");
+    }
     void add(const char* str)
     {
-       string* temp = new string[size+1];
+       std::string* temp = new std::string[size+1];
        for(int i=0;i<size;i++)
           temp[i] = info[i];
-        temp[size] = string(str);
+        temp[size] = std::string(str);
         if(info != 0)
             delete[] info;
         info = temp;

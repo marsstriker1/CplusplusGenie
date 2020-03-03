@@ -3,8 +3,9 @@
 #include<string>
 #include<dirent.h>
 #include<windows.h>
+#include"DisplayInfo.h"
 
-#define MAX_FILE_NO 20
+const int MAX_FILE_NO = 40;
 
 using namespace std;
 
@@ -18,10 +19,10 @@ protected:
 
 public:
     bool isValid = true;
+     DisplayInfo dirDi;
 
     void createDir()
     {
-        //if(mkdir(dirPath) == );
         string mkdirCommand = string("mkdir ") + string(dirPath);
         system(mkdirCommand.data());
     }
@@ -90,31 +91,32 @@ public:
             SetFileAttributes(dirPath, attributes - FILE_ATTRIBUTE_HIDDEN);
     }
 
-    /*string getFileExtension(string fileName)
+    string getFileExtension(string fileName)
     {
-        char* ext;
+        string ext("");
         bool flag = false;
         int extcount = 0;
-        for(unsigned int a =0;a<fileName.size();a++)
+        int pos = fileName.find(".");
+        if(pos != -1)
         {
-            if(fileName[a] == '.' || flag)
-            {
-                ext[extcount] = fileName[a];
-                flag = true;
-                extcount++;
-            }
+        for(unsigned int a = pos;a<fileName.size();a++)
+        {
+            ext.push_back(fileName[a]);
         }
-        ext[extcount] = '\0';
-        return string(ext);
-    }*/
+        }
+        return ext;
+    }
+
     int getFileNumber()
     {
-    return fileNo;
+        return fileNo;
     }
+
     string getFileName(int i)
     {
         return filename[i];
     }
+
     void setFileNames()
     {
         DIR *dir;
@@ -123,9 +125,6 @@ public:
         if (dir == 0)
         {
             isValid = false;
-//            ErrorWindow::create("directory not found!",100,300);
-            /*cout<<"\nINVALID DIRECTORY!!! ";
-            exit(0);*/
         }
         int i = 0;
         int fileCount =0;
@@ -153,13 +152,11 @@ public:
 
     void displayfile()
     {
-        cout<<"\nDISPLAYING FILES: ";
         for(int i=0;i<fileNo;i++)
         {
             if (filename[i] == "\0")
                 break;
-            cout<<"\n"<<filename[i];
+            dirDi.add(filename[i]);
         }
-        cout<<"\n";
     }
 };

@@ -21,10 +21,7 @@ void printText(float x, float y,const char * text,void *font,float r,float g, fl
       glColor3f(0,0,0);
       glRasterPos2d(x,y);
       int i = 0,a;
-      //char width is width of character in float value here charWidthInPixel/(windowSize/2)  = 8/300 = 0.02667
-      //(windowSize/2) because window in float value -1 t0 +1
       float tsize = tex.size()* CHAR_WIDTH;
-      //std::cout<<"\ttexsize: "<<tex.size()<<"\ttw:"<<tsize<<"\tcw:"<<CHAR_WIDTH;
       if( tsize < (max_x-x))
         a =0;
       else
@@ -63,6 +60,22 @@ std::string viewTodoList(std::string uName,std::string task)
      glVertex2f(x,y-h);
      glEnd();
  }
+void glDrawRecOutline(float a, float b,float c,float d)
+{
+    glBegin(GL_LINES);
+        glVertex2f(a,b);   //LefttLine
+        glVertex2f(a,d);
+
+        glVertex2f(c,b);   //RightLine
+        glVertex2f(c,d);
+
+        glVertex2f(a,b);   //RLowerLine
+        glVertex2f(c,b);
+
+        glVertex2f(a,d);   //UpperLine
+        glVertex2f(c,d);
+    glEnd();
+}
 float toFloatX(int x)
 {
     float tx;
@@ -90,25 +103,5 @@ float toFloatY(int y)
     {
         ty=(ty-10)*(-1);
     }
-    //std::cout<<"X= "<<tx<<"\tY= "<<ty<<"\n";
     return ty;
-}
-void mglErrorMsg(const char* msg1,const char * msg2)
-{
-    glColor3f(0,0,0);
-    glDrawP(-4.3,0.3,8.6,5.6);
-    glColor3f(0.85,0,0);
-    glDrawP(-4,0,8,5);
-    printText(-2.0,-1.5,msg1,GLUT_BITMAP_HELVETICA_18,0,0,0);
-    printText(-2.5,-3,msg2,GLUT_BITMAP_HELVETICA_12,0,0,0);
-}
-void mglErrorMsg(const char* msg1,const char * msg2,const char * msg3)
-{
-    glColor3f(0,0,0);
-    glDrawP(-4.3,0.3,8.6,5.6);
-    glColor3f(0.85,0,0);
-    glDrawP(-4,0,8,5);
-    printText(-2.0,-1.5,msg1,GLUT_BITMAP_HELVETICA_18,0,0,0);
-    printText(-2.5,-3,msg2,GLUT_BITMAP_HELVETICA_12,0,0,0);
-    printText(-3.2,-3.8,msg3,GLUT_BITMAP_HELVETICA_12,0,0,0);
 }

@@ -37,11 +37,6 @@ void addTodo(){
         string dirPath = createDirectory1();
         path = dirPath +std::string(description) + std::string(".txt");
 
-        //std::string dirPath = createDirectory();
-        //std::string path = dirPath + std::string(description) + std::string("_Todo.txt");
-        //std::string path = std::string("D:\\\\C++GenieFile\\\\") + std::string(username) + std::string("\\\\")+std::string(description) + std::string("_Todo.txt");
-
-
         ofstream file; //create a file
         file.open((path).c_str());
         file << description <<std::endl<<dueDate<<std::endl;
@@ -50,8 +45,7 @@ void addTodo(){
 
 void readTodo(){
     unsigned int counter =1;
-    //std::string path = std::string("D:\\\\C++GenieFile\\\\") + std::string(username) + std::string("\\\\")+std::string(description) + std::string("_Todo.txt");
-    //std::string path = std::string("D:\\\\C++GenieFile\\\\") + std::string(username) +std::string("\\\\Todo\\\\")+std::string(description) + std::string("_Todo.txt");
+
     ifstream fin;
     fin.open((path).c_str(),ios::app);  //open ToDo text file
 
@@ -72,14 +66,11 @@ void readTodo(){
 
                 else if(counter==2)
                 {
-                     //std::cout<<"\tReading 2";
                     getline(fin,reader2);
-                    //std::cout<<"\n2= "<<reader2;
                     counter=3;
                 }
                 if(counter==3)
                 {
-                    //std::cout<<"Success!";
                     break;
                 }
 

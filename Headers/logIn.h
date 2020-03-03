@@ -1,8 +1,4 @@
 
-#include <fstream>
-#include <string>
-#include <iostream>
-
 class logIn{
 private:
     std::string username,un;
@@ -25,9 +21,6 @@ bool IsLogedIn(){
         //read from file
     getline(read,un);
     getline(read,pw);
-
-   /* if(username=="a")                       // need to be deleted ,easy for working
-        return true;*/
 
     if(username!="" && password!="")
     {

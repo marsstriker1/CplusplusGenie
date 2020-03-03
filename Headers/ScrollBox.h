@@ -1,5 +1,4 @@
 #include "GlutUtility.h"
-const int MAX_LINES = 40;
 
 class ScrollBox
 {
@@ -11,7 +10,8 @@ private:
     float Y1;
     float X2;
     float Y2;
-    //Color color;
+    int activeline;
+    int activeStatusPos;
     float wheelheight;
     int maxlines;
     string* lines;
@@ -23,32 +23,66 @@ private:
      float wheel_X2;
      float wheel_Y1;
      float wheel_Y2;
+     bool showActiveStatus = false;
 public:
      bool canScroll = false;
+     bool mouseOver = false;
 
     ScrollBox(float x1,float y1,float x2,float y2)
     {
         X1 = x1; Y1 = y1; X2 = x2; Y2 = y2;
-        //color = c;
-       maxletter = (X1 - X2)/ CHAR_WIDTH;
+       maxletter = (X2-1 - X1)/ CHAR_WIDTH;
        maxlines = (int)((Y1 - Y2)/ CHAR_HEIGHT);
-       //std::cout<<"\nmaxlines: "<<maxlines;
+       activeline = -1;
+    }
+    string getActiveLine()
+    {
+        if(activeline >=0 && activeline < nooflines)
+        {
+            return lines[activeline];
+        }
+        else
+            return string("");
+
+    }
+    void setActiveStatus(bool acst)
+    {
+        showActiveStatus = acst;
     }
     void setlines(string* inlin,int stringsize)
     {
         if(nooflines>0)
             delete[] lines;
-        lines = new string[stringsize];
-         for(int i=0;i<stringsize;i++)
-            lines[i] = inlin[i];
         nooflines = stringsize;
+        for(int i=0;i<stringsize;i++)
+         {
+             if(inlin[i].size()>maxletter)
+             {
+                nooflines++;
+             }
+
+         }
+         lines = new string[nooflines];
+         for(int i=0 ,sc=0;sc<stringsize;i++,sc++)
+         {
+             if(inlin[sc].size()<maxletter)
+             {
+                lines[i] = inlin[sc];
+             }
+             else     //breaking strings to remove overflow
+             {
+                 lines[i] = inlin[sc].substr(0,maxletter);
+                 lines[i+1] = inlin[sc].substr(maxletter,inlin[sc].size()-1);
+                 i++;
+             }
+         }
         if(nooflines > maxlines)
-       {
+        {
             wheelheight = (Y1 - Y2)/((nooflines-maxlines) + 1);
             wheelpos = 0;
             canScroll = true;
             maxWheelpos = nooflines-maxlines;
-       }
+        }
         else
         {
             wheelheight = 0;
@@ -59,8 +93,8 @@ public:
         wheel_X2 = X2;
         wheel_Y1 = Y1-wheelheight*wheelpos;
         wheel_Y2 = wheel_Y1-wheelheight;
-
     }
+
     float getwheelx1()
     {return wheel_X1;}
      float getwheelx2()
@@ -69,15 +103,23 @@ public:
     {return wheel_Y1;}
      float getwheely2()
     {return wheel_Y2;}
+
+    float getx1()
+    {return X1;}
+     float getx2()
+    {return X2;}
+     float gety1()
+    {return Y1;}
+     float gety2()
+    {return Y2;}
+
     void increaseWheelPos()
     {
         if(wheelpos < maxWheelpos)
         {
-        //std::cout<<"\nwheelx1: "<<wheel_X1<<"wheelx2: "<<wheel_X2<<"wheely1: "<<wheel_Y1<<"wheely2: "<<wheel_Y2;
         wheelpos++;
         wheel_Y1 = Y1-wheelheight*wheelpos;
         wheel_Y2 = wheel_Y1-wheelheight;
-        //std::cout<<"\nwheelx1: "<<wheel_X1<<"wheelx2: "<<wheel_X2<<"wheely1: "<<wheel_Y1<<"wheely2: "<<wheel_Y2;
         }
     }
     void decreaseWheelPos()
@@ -85,11 +127,52 @@ public:
         if(wheelpos > 0)
         {
         wheelpos--;
-        //std::cout<<"\nwheelpos decrease"<<wheelpos;
         wheel_Y1 = Y1-wheelheight*wheelpos;
         wheel_Y2 = wheel_Y1-wheelheight;
-        //std::cout<<"\nwheelx1: "<<wheel_X1<<"wheelx2: "<<wheel_X2<<"wheely1: "<<wheel_Y1<<"wheely2: "<<wheel_Y2;
         }
+    }
+    void resetActivePos()
+    {
+        activeline = -1;
+    }
+
+    void mousePosToLineNo(int x,int y)
+    {
+        float xi,yi;
+        yi = 1*10-(float)(y/32.5);
+        xi = (float)(x/35)-10;
+        if((Y1-Y2-CHAR_HEIGHT)>(Y1-yi))
+        {
+            activeline = (int)((Y1-yi)/CHAR_HEIGHT);
+            if((activeline >= nooflines))
+                activeline = -1;
+            if(wheelpos!=-1)
+                activeline += wheelpos;
+        }
+    }
+
+    void OnMouseHover(int x,int y)
+    {
+        mousePosToLineNo(x,y);
+    }
+
+    bool isMouseOver(int x,int y)
+    {
+        float xf,yf;
+        xf = static_cast<float>(x)/35 - 10;
+        yf = 10 - static_cast<float>(y)/32.5;
+        if(xf>X1 && xf<X2 && yf<Y1 && yf > Y2 )
+            return true;
+        else
+            return false;
+    }
+
+    bool isMouseOver(float xf,float yf)
+    {
+        if(xf>X1 && xf<X2 && yf<Y1 && yf > Y2 )
+            return true;
+        else
+            return false;
     }
 
  private:
@@ -108,17 +191,10 @@ public:
     {
       glColor3f(0,0,0);
       glRasterPos2d(x,y);
-      int i = 0;
-      float tsize = text.size()* CHAR_WIDTH;
-      if( tsize < (max_x-x))
-        i =0;
-      else
-        i = (text.size() - (int)((max_x - x)/CHAR_WIDTH));
-      for (i;text[i]!='\0';i++)
-      {
-        glutBitmapCharacter(GLUT_BITMAP_8_BY_13,text[i]);
-        //std::cout<<text[i];
-      }
+        for (int i = 0;i < text.size() ;i++)
+        {
+            glutBitmapCharacter(GLUT_BITMAP_8_BY_13,text[i]);
+        }
       glutPostRedisplay();
     }
 
@@ -135,8 +211,16 @@ public:
   public:
     void display()
     {
-        makeBox(X1,X2,Y1,Y2,Color(1,1,1));  //scroll box
-        makeBox(X2-0.05*10,X2,Y1,Y2,Color(0.5,0.5,0.5));  //scrollwheel placement box
+        makeBox(X1,X2,Y1+0.05,Y2,Color(1,1,1));  //scroll box
+        makeBox(X2-0.05*10,X2,Y1+0.05,Y2,Color(0.5,0.5,0.5));  //scrollwheel placement box
+        if(activeline>-1 && showActiveStatus)
+        {
+            if(wheelpos>-1)
+                activeStatusPos = activeline - wheelpos;
+            else
+                activeStatusPos = activeline;
+            makeBox(X1+0.1,X2-0.6,Y1-activeStatusPos*CHAR_HEIGHT,(Y1-activeStatusPos*CHAR_HEIGHT)-CHAR_HEIGHT,Color(0.145,0.8745,0.06667));  //activeline status box
+        }
         if(canScroll)
             makeBox(wheel_X1,wheel_X2,wheel_Y1,wheel_Y2,Color(0.2,0.2,0.2));  //scroll wheel
         if(nooflines>0)

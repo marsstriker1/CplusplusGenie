@@ -1,4 +1,4 @@
-#include<iostream>
+
 #include<fstream>
 
 class FileHandler
@@ -11,18 +11,35 @@ public:
     {
         filePath = fpath;
     }
+
+    void moveFileTo(char* newpath)
+    {
+        rename(filePath,newpath);
+    }
+
     void createFile()
     {
         file.open(filePath ,ios::out);
         if(!file)
         {
-            filePath = "\0";
+            filePath = "";
             std::cout<<"\nError creating file";
         }
         file.close();
     }
 
-    inline bool exists ()
+    void removeFile()
+    {
+        remove(filePath);
+    }
+
+    void openFileExternal()
+    {
+        string command = string("start ") + string(filePath);
+        system(command.data());
+    }
+
+    bool exists ()
     {
     file.open(filePath,ios::in);
     bool check = file.good();

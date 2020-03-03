@@ -45,8 +45,6 @@ public:
         int se1=se/10;
         int se2=se%10;
 
-        //std::cout<<std::endl<<hr2<<std::endl<<mi<<std::endl<<mi1;
-
         glColor3f(redn,greenn,bluen);
 
         glRasterPos2f(x_pos,y_pos);
@@ -103,12 +101,6 @@ public:
 
         int d1=day/10;
         int d2=day%10;
-
-        /*std::cout<<local->tm_year+1900<<std::endl;
-        std::cout<<local->tm_mon+1<<std::endl;
-        std::cout<<local->tm_mday;
-        if(local->tm_wday==5)
-            std::cout<<"Friday\n";*/
 
         glColor3f(redn,greenn,bluen);
         //YEAR

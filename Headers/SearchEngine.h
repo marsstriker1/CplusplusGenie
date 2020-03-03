@@ -1,20 +1,13 @@
-#include<iostream>
-#include<fstream>
-#include<string>
-#include<dirent.h>
-#include<windows.h>
 
 #include"DirectoryHandler.h"
 #include"FileHandler.h"
-#include"DisplayInfo.h"
 //#include"ErrorWindow.h"
 
-#define MAX_FILE_NO 20
-#define MAX_WORDS_NO 10
-#define WORD_PRIORITY 3
-#define MAX_WORD_LEN 20
-#define MAX_COMP_INCOS_STR_LEN 2
-#define SYNONYM_DIR  ".\\synonym\\"
+const int MAX_WORDS_NO = 10;
+const int WORD_PRIORITY = 3;
+const int MAX_WORD_LEN = 20;
+const int MAX_COMP_INCOS_STR_LEN = 2;
+const char SYNONYM_DIR[] = ".\\synonym\\";
 
 using namespace std;
 DisplayInfo searchEngineDi;
@@ -26,20 +19,11 @@ private:
     const char* priorityList[MAX_FILE_NO];                 //priority list based on priority1 and priority2 for files
     const string* keywords;
     const string* synonyms[MAX_WORDS_NO];     //synonym words of given keyword
-       /* bool foundword[MAX_WORDS_NO];    //found given keyword
-        bool foundAltWord[WORD_PRIORITY][MAX_WORDS_NO];  //found alternative words to given keywords
-        bool checkFA[WORD_PRIORITY][MAX_WORDS_NO];    //check for alternatives for given keywords
-        bool foundCW[MAX_WORDS_NO+1];      //found consecutive words matching the given keyword
-        int FCW = 0;      //no of found consecutive matched words
-        char word[MAX_WORD_LEN];
-        char altWord[WORD_PRIORITY][MAX_WORDS_NO][MAX_WORD_LEN];
-        int synonymCount[MAX_WORDS_NO] = {0};*/
-
-    void sortFiles();
 
 public:
     void searchForResult(const char *keyword);
     int readSynonyms(const char *keyword , int index);
+    string* breakIntoWords(const char *str);
 
    int countInconsistent(const char* c1, const char* c2)
     {
@@ -54,7 +38,53 @@ public:
         return inconsistentCount;
     }
 
-   string* breakIntoWords(const char *str)
+   int findNoOfWords(const char *str)
+   {
+       int i=0,wordCount = 1;
+       while(*(str+i) != '\0')
+       {
+            if(isPunctuation(*(str+i)) && !isPunctuation(*(str+i-1)) )
+                wordCount++;
+            i++;
+       }
+       return wordCount;
+   }
+
+   bool isPunctuation(const char l)
+   {
+       if((l>= 32 && l<=47) || (l>=58 && l<=64)|| (l>=91 && l<=96)|| (l>=123 && l<=126) || l=='\0' || l == '\n')
+            return true;
+       else
+            return false;
+   }
+};
+
+    int SearchEngine::readSynonyms(const char* keyword ,int index)
+    {
+        string synfilepath = string(SYNONYM_DIR) + keyword[0] + string("\\") + keyword + string(".txt");
+        FileHandler synfile;
+        synfile.setFilePath(synfilepath.data());
+        int synCount = 0;
+
+        string tempSynword("");
+        if(synfile.exists())
+        {
+            ifstream synfilein;
+            synfilein.open(synfilepath.data(),ios::in);
+            int i = 0;
+            while(!synfilein.eof())
+            {
+                synfilein.get(tempSynword[i]);
+                i++;
+            }
+            tempSynword[i-1] = '\0';
+            synCount = findNoOfWords(tempSynword.data()) -1;
+            synonyms[index] = breakIntoWords(tempSynword.data());
+        }
+        return synCount;
+    }
+
+    string* SearchEngine::breakIntoWords(const char *str)
    {
        string *words;
        string str1(str);
@@ -93,59 +123,6 @@ public:
        return words;
    }
 
-   int findNoOfWords(const char *str)
-   {
-       int i=0,wordCount = 1;
-       while(*(str+i) != '\0')
-       {
-            if(isPunctuation(*(str+i)) && !isPunctuation(*(str+i-1)) )
-                wordCount++;
-            i++;
-       }
-       return wordCount;
-   }
-
-   bool isPunctuation(const char l)
-   {
-       if((l>= 32 && l<=47) || (l>=58 && l<=64)|| l=='\0' || l == '\n')
-            return true;
-       else
-            return false;
-   }
-};
-
-    int SearchEngine::readSynonyms(const char* keyword ,int index)
-    {
-        string synfilepath = string(SYNONYM_DIR) + keyword[0] + string("\\") + keyword + string(".txt");
-        FileHandler synfile;
-        synfile.setFilePath(synfilepath.data());
-        int synCount = 0;
-
-        string tempSynword("");
-        if(synfile.exists())
-        {
-            ifstream synfilein;
-            synfilein.open(synfilepath.data(),ios::in);
-            int i = 0;
-            while(!synfilein.eof())
-            {
-                synfilein.get(tempSynword[i]);
-                i++;
-            }
-            tempSynword[i-1] = '\0';
-            synCount = findNoOfWords(tempSynword.data()) -1;
-            synonyms[index] = breakIntoWords(tempSynword.data());
-        }
-        return synCount;
-    }
-
-   /* void SearchEngine::sortFiles()
-    {
-        for(int fc = 0;fc<fileNo;fc++)
-        {
-
-        }
-    }*/
 
    void SearchEngine::searchForResult(const char *keyword)
    {
@@ -157,14 +134,10 @@ public:
         int FCW = 0;      //no of found consecutive matched words
         char word[MAX_WORD_LEN];
         char altWord[WORD_PRIORITY][wordNo][MAX_WORD_LEN];
-         int synonymCount[MAX_WORDS_NO] = {0};
+        int synonymCount[MAX_WORDS_NO] = {0};
 
-       string completeFileName;
-         //no of words in given keyword
-        /*fill(foundword,(foundword+MAX_WORDS_NO),false);
-        fill(foundCW,(foundCW+MAX_WORDS_NO+1),false);
-        memset(foundAltWord, false, sizeof(bool) * MAX_WORDS_NO * WORD_PRIORITY);
-        memset(checkFA, true, sizeof(bool) * MAX_WORDS_NO * WORD_PRIORITY);*/
+        string completeFileName;
+        string returninfo;
 
         fill(foundword,(foundword+wordNo),false);
         fill(foundCW,(foundCW+wordNo+1),false);
@@ -173,15 +146,16 @@ public:
 
         keywords = breakIntoWords(keyword);  //break the given keyword into words
 
-        cout<<"\nSEARCHING FOR....";
         for(int ksc = 0;ksc <wordNo;ksc++) //KSC = keyword string count
         {
-            cout<<"\t"<<keywords[ksc];
             synonymCount[ksc] = readSynonyms(keywords[ksc].data(),ksc);
             if(synonymCount[ksc] > 0)
             {
+                returninfo = string("Including searches for synonym of ") + keywords[ksc] + string(" as:");
+                searchEngineDi.add(returninfo);
                 for(int sc = 0;sc<synonymCount[ksc] ; sc++)              //sc - synonym count or no of synonyms of current keyword
-                  cout<<"("<<synonyms[ksc][sc]<<")";
+                  returninfo = string("(") + synonyms[ksc][sc] + string(")");
+                  searchEngineDi.add(returninfo);
             }
         }
 
@@ -191,12 +165,12 @@ public:
         int letterCount = 0;
         string curKeyword;
 
-        cout<<"\nNo of files: "<<fileNo;
         for(int fileCount=0; fileCount<fileNo ; fileCount++)
         {
+            if(getFileExtension(filename[fileCount]) != ".txt")
+                continue;
             completeFileName = (string(dirPath)+filename[fileCount]);
             filein.open(completeFileName.data(),ios::in);
-            cout<<"\n\n\nSEARCHING IN "<<filename[fileCount]<<"\n\n";
             while(!filein.eof())
             {
                 filein >>noskipws>> letter;
@@ -232,7 +206,6 @@ public:
                                 {
                                     checkFA[w][ksc] = false;
                                 }
-                                //cout<<"\n\n##match found##\n\n";  //found exact match of current keyword
                              }
                            else if(synonymCount[ksc]>0)
                            {
@@ -261,7 +234,6 @@ public:
                                 {
                                     checkFA[w][ksc] = false;
                                 }
-                                //cout<<"\n\n##match found##\n\n";  //found exact match of current keyword
                                 }
                             }
                            }
@@ -273,8 +245,6 @@ public:
                                     strncpy(altWord[0][ksc], word,string(word).size());
                                     altWord[0][ksc][string(word).size()] = '\0';
                                     foundAltWord[0][ksc] = true;
-                                    //cout<<"\n\n\n####found a1####\n\n\n";
-                                    //priority2[fileCount][ksc][1] +=1;
                                     for(unsigned int w=0;w<=WORD_PRIORITY ;w++)
                                     {
                                         checkFA[w][ksc] = false;
@@ -300,8 +270,6 @@ public:
                                         strcpy(altWord[1][ksc], word);
                                         altWord[1][ksc][string(word).size()] = '\0';
                                         foundAltWord[1][ksc] = true;
-                                        //cout<<"\n\n\n###found a2###\n\n\n";
-                                        //priority2[fileCount][ksc][2] +=1;
                                         for(int w=1;w<=WORD_PRIORITY ;w++)
                                         {
                                             checkFA[w][ksc] = false;
@@ -325,7 +293,6 @@ public:
                                     altWord[2][ksc][curKeyword.size()-1] = '\0';
                                     if(countInconsistent(word,altWord[2][ksc]) <= 1)
                                     {
-                                        //cout<<"\n\n\n##found a3##\n\n\n";
                                         strcpy(altWord[2][ksc], word);
                                         foundAltWord[2][ksc] = true;
                                     }
@@ -343,7 +310,6 @@ public:
 
             filein.close();
         }
-        string returninfo;
 
         for(int ksc = 0;ksc <wordNo;ksc++) //ksc = keyword string count
             {
@@ -371,10 +337,11 @@ public:
                     }
                 }
                 else{
-                    //cout<<"\n";
                     for(int fc =0;fc<fileNo;fc++)  // fc = file count
                     {
-                    returninfo = string("Occurances of ")+keywords[ksc]+string(" for file: '")+filename[fc]+string("' is ")+ to_string(priority2[fc][ksc]);
+                    if(getFileExtension(filename[fc]) != ".txt")
+                        continue;
+                    returninfo = string("Occurances of \"")+keywords[ksc]+string("\" for file: \"")+filename[fc]+string("\" is ")+ to_string(priority2[fc][ksc]);
                     searchEngineDi.add(returninfo);
                     }
                 }
@@ -385,8 +352,24 @@ public:
                 if(foundCW[cw])
                     FCW++;
             }
+            if(wordNo>1)
+            {
             returninfo = to_string(FCW)+string(" words out of given ")+to_string(wordNo)+string(" were found to occur consecutively");
             searchEngineDi.add(returninfo);
+
+            for(int fc=0;fc<fileNo;fc++)
+            {
+                for(int ksc=wordNo-1;ksc>1;ksc--)
+                {
+                    if(priority1[fc][ksc]>0)
+                    {
+                        returninfo = to_string(priority1[fc][ksc]) + string(" Occurances of ")+to_string(ksc)+string(" words out of given ")+to_string(wordNo)+string(" were found to occur consecutively in file ")+filename[fc];
+                        searchEngineDi.add(returninfo);
+                        break;
+                    }
+                }
+            }
+            }
 
         delete[] keywords;
 
@@ -409,14 +392,12 @@ public:
      void getInput(const char* syn1, const char* syn2)
      {
          synword1 = syn1;
-         //cout<<"\nSynword1: "<<synword1;
          synword2 = syn2;
-         //cout<<"\nSynword2: "<<synword2;
      }
 
      void addToFile()
      {
-         syndir.setDirName(string(SYNONYM_DIR).data());
+         syndir.setDirName(SYNONYM_DIR);
          syndir.hidedir();
 
         string syndir1 = string(SYNONYM_DIR) + synword1[0];
@@ -465,7 +446,7 @@ void Search(const char* key,const char* dirpath)
     }
     else
     {
-        cout<<"\nNo files to search from!!";
+        searchEngineDi.add("No files to search from!!");
     }
 }
 
