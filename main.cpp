@@ -226,6 +226,7 @@ namespace action
                     pageNo=WORKING_P;
                     userName=userNameN;
                     SearchWindow::setUser(userName);
+                    SearchWindow::createFileBox();
                 }
                 else
                     createErrorWindow("Password must contain special character, alphabet & digit");
@@ -245,7 +246,6 @@ namespace WelcomePage
 {
     void mouse(int x, int y)
     {
-        //std::cout<<y;
         if((x>=365 && x<=490) && (y>=570 && y<=615))
         {
             pageNo=LOGIN_P;
@@ -582,6 +582,10 @@ void mouseclicked(int button,int state,int a,int b)
             Todo::mouse(x,y);
         }
     }
+    else if((button == 3 || button == 4)&& pageNo==WORKING_P)
+    {
+        SearchWindow::mouseFunc(button,state, x, y);
+    }
     glutPostRedisplay();
 }
 void passMouse(int x, int y)
@@ -849,9 +853,10 @@ void addMenu()
 {
          menuIndex = glutCreateMenu(SearchWindow::menuCallback);
         // Add menu items
-        glutAddMenuEntry("Add File", ADD_FILE);
+        glutAddMenuEntry("Create Text File", CREATE_FILE);
         glutAddMenuEntry("Edit File", EDIT_FILE);
         glutAddMenuEntry("Delete File", DELETE_FILE);
+        glutAddMenuEntry("Add Existing File",ADD_FILE);
 
 }
 void activateMenu()

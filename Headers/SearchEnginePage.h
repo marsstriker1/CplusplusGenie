@@ -22,7 +22,7 @@ const float SSYNB_X2 = SSYNB_X1-1.5;
 const float SSYNB_Y2 = SSYNB_Y1-1;
 
 const float SCBX_Y2 = -0.1*10;
-enum{ ADD_FILE, EDIT_FILE, DELETE_FILE };
+enum{ ADD_FILE, EDIT_FILE, DELETE_FILE ,CREATE_FILE};
 
 namespace SearchWindow
 {
@@ -35,6 +35,7 @@ namespace SearchWindow
     bool syn2 = false;
     bool wheelSelected = false;      //files scroll box wheel selected
     bool fbwheelSelected = false;     //feedback scroll wheel selected
+    bool renamingfile = false;
 
     std::string keyword ("");
     std::string synonym1("");
@@ -51,23 +52,26 @@ namespace SearchWindow
     bool canMake = true;
     int mainWindowIndex;
     string filename("");
-    const float CHAR_WIDTH = 0.02;
+    const float CHAR_WIDTH = 0.04;
+    const float CHAR_HEIGHT = 0.13;
     const float X1 = -0.5;
     const float X2 = X1+1;
     const float Y1 = 0.6;
     const float Y2 = Y1-0.3;
-    bool boxSelected = false;
-    bool dirboxselected = false;
+    TextBox filebox(X1,X2,Y1,Y2,CHAR_WIDTH,CHAR_HEIGHT);
+    TextBox dirbox(X1,X2,Y2-0.2,Y2-0.5,CHAR_WIDTH,CHAR_HEIGHT);
 
     void destroy()
     {
         glutDestroyWindow(index);
-        boxSelected = false;
-        dirboxselected = false;
+        filebox.setActive(false);
+        dirbox.setActive(false);
         canMake = true;
+        renamingfile = false;
         glutSetWindow(mainWindowIndex);
     }
-   void printText(std::string text,float x,float y,float max_x,void* font)
+
+    void printText(std::string text,float x,float y,float max_x,void* font)
     {
       glColor3f(0,0,0);
       glRasterPos2d(x,y);
@@ -84,44 +88,41 @@ namespace SearchWindow
       glutPostRedisplay();
     }
 
-    void makeTextBox(float x1,float x2,float y1,float y2,float r,float g,float b)
-    {
-        glBegin(GL_QUADS);
-        glColor3f(r,g,b);
-        glVertex2f(x2,y1);    //1st quadrant
-        glVertex2f(x1,y1);    //2nd quadrant , x1 y1 is left-top corner
-        glVertex2f(x1,y2);    //3rd quadrant
-        glVertex2f(x2,y2);    //4th quadrant , x2 y2 is right-bottom corner
-        glEnd();
-    }
-
-   void render()
+    void render()
     {
         glClear(GL_COLOR_BUFFER_BIT);
-        printText("ENTER FILE-NAME TO CREATE TEXT FILE",-0.9,Y1+0.1,0.9,GLUT_BITMAP_8_BY_13);
-        makeTextBox(X1,X2,Y1,Y2,1,1,1);
-        if(boxSelected)
-            makeTextBox(X1+0.01,X2-0.01,Y1-0.02,Y2+0.01,0.8,0.8,0.8);
-        if(filename.size()>0)
-            printText(filename.data(),X1+0.02,Y2+0.15,X2-0.02,GLUT_BITMAP_8_BY_13);
+        if(renamingfile)
+        {
+            printText("ENTER FILE-NAME OF SOURCE FILE(eg. file.jpg)",-0.9,Y1+0.1,0.9,GLUT_BITMAP_8_BY_13);
+            printText("ENTER DIRECTORY-PATH OF FILE ABOVE(eg. c:/dir1/dir2)",-0.95,Y2-0.15,0.95,GLUT_BITMAP_8_BY_13);
+            dirbox.display();
+        }
+        else
+             printText("ENTER FILE-NAME TO CREATE TEXT FILE(eg. new)",-0.9,Y1+0.1,0.9,GLUT_BITMAP_8_BY_13);
+        filebox.display();
 
         glutSwapBuffers();
     }
 
     void OnKeyPressed(unsigned char key,int x,int y)
     {
-      if(boxSelected)
+      if(renamingfile)
+        dirbox.onKeyPressed(key);
+        filebox.onKeyPressed(key);
+      if(filebox.getActive() && key == 13)
       {
-        if((key == 8)&&(filename.size()>0))
-        { filename.pop_back(); }
-
-        else if((key == 13 ) && (filename.size()>1))
-        {
             SearchWindow::createFile();
             destroy();
-        }
-        else if(key != 8  && !((key>= 0 && key<=31) || (key>= 33 && key<=47) || (key>=58 && key<=64)|| (key>=91 && key<=96) || key>=123) )
-        {  filename+=key;   }
+      }
+      if(dirbox.getActive() && key == 13 && filebox.getText().size()>4)
+      {
+          string newpath = string("./") + userName + string("/data/") + filebox.getText();
+          string oldpatn = dirbox.getText() + "/" + filebox.getText();
+          rename(oldpatn.data(),newpath.data());
+          filebox.setText("");
+          dirbox.setText("");
+          createFileBox();
+          destroy();
       }
     }
 
@@ -129,11 +130,13 @@ namespace SearchWindow
     {
         if((button == GLUT_LEFT_BUTTON) &&(state == GLUT_DOWN))
         {
-             boxSelected = false;
-            if(x> ((1+X1)*200) && x<((1+X2)*200) && y>((1-Y1)*100) && y<((1-Y2)*100))
-            {
-                boxSelected = true;
-            }
+            float xf ,yf;
+            xf = static_cast<float>(x)/200 - 1;
+            yf = 1 - static_cast<float>(y)/100;
+
+             if(renamingfile)
+                dirbox.setActive(dirbox.mouseFunc(xf,yf));
+             filebox.setActive(filebox.mouseFunc(xf,yf));
         }
     }
 
@@ -157,11 +160,11 @@ namespace SearchWindow
     void createFile()
     {
         FileHandler cfile;
-        string cfilepath = string("./") + userName + string("/data/") + AddFileWindow::filename + string(".txt");
+        string cfilepath = string("./") + userName + string("/data/") + AddFileWindow::filebox.getText() + string(".txt");
         cfile.setFilePath(cfilepath.data());
         cfile.createFile();
         createFileBox();
-        AddFileWindow::filename = "";
+        AddFileWindow::filebox.setText("");
     }
 
     void menuCallback(int item)
@@ -171,7 +174,7 @@ namespace SearchWindow
         cfile.setFilePath(cfilepath.data());
             switch (item)
             {
-            case ADD_FILE:
+            case CREATE_FILE:
             {
             if(AddFileWindow::canMake)
                 AddFileWindow::create(glutGet(GLUT_WINDOW_X)+150,glutGet(GLUT_WINDOW_Y)+100);
@@ -188,6 +191,13 @@ namespace SearchWindow
                 cfile.removeFile();
                 createFileBox();
                 break;
+            }
+            case ADD_FILE:
+            {
+               renamingfile = true;
+            if(AddFileWindow::canMake)
+                AddFileWindow::create(glutGet(GLUT_WINDOW_X)+150,glutGet(GLUT_WINDOW_Y)+100);
+            break;
             }
             default:
                 { break;     }
@@ -433,6 +443,20 @@ namespace SearchWindow
               fbwheelSelected = true;
            }
         }
+        else if(button == 3 && state == GLUT_UP )
+        {
+            if(scbx.isMouseOver(x,y))
+                scbx.decreaseWheelPos();
+            else if(fbscbx.isMouseOver(x,y))
+                fbscbx.decreaseWheelPos();
+        }
+        else if(button == 4 && state == GLUT_UP)
+        {
+            if(scbx.isMouseOver(x,y))
+                scbx.increaseWheelPos();
+            else if(fbscbx.isMouseOver(x,y))
+                fbscbx.increaseWheelPos();
+        }
     }
 
     void setUser(string username)
@@ -441,6 +465,8 @@ namespace SearchWindow
     }
     void createFileBox()
     {
+        searchEngineDi.clear();
+        fbscbx.setlines(searchEngineDi.getinfo(),searchEngineDi.getsize());
         DirectoryHandler userdhl;
         string userdir = string("./") + userName + string("/data");
         userdhl.setDirName(userdir.data());

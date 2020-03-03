@@ -1,4 +1,4 @@
-#include "GlutUtility.h"
+#include "TextBox.h"
 
 class ScrollBox
 {
