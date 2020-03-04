@@ -1,4 +1,3 @@
-
 #include"DirectoryHandler.h"
 #include"FileHandler.h"
 //#include"ErrorWindow.h"
@@ -154,8 +153,11 @@ public:
                 returninfo = string("Including searches for synonym of ") + keywords[ksc] + string(" as:");
                 searchEngineDi.add(returninfo);
                 for(int sc = 0;sc<synonymCount[ksc] ; sc++)              //sc - synonym count or no of synonyms of current keyword
+                {
                   returninfo = string("(") + synonyms[ksc][sc] + string(")");
                   searchEngineDi.add(returninfo);
+                }
+
             }
         }
 
@@ -183,32 +185,8 @@ public:
                         word[letterCount-1]='\0';
                         for(int ksc = 0;ksc <wordNo;ksc++) //ksc = keyword string count
                         {
-                            curKeyword = keywords[ksc];
-                           if((string(word) == curKeyword))
+                            if(synonymCount[ksc]>0)
                             {
-                                foundword[ksc] = true;
-                                foundCW[0] = true;
-                                FCW++;
-                                priority1[fileCount][1]++;
-                                for(int cw =1;cw<=wordNo;cw++)
-                                {
-                                    if(FCW >= cw)
-                                    {
-                                        foundCW[FCW] = true;
-                                        priority1[fileCount][FCW]++;
-                                    }
-                                    else
-                                        break;
-                                }
-
-                                priority2[fileCount][ksc] +=1;
-                                for(int w=0;w<=WORD_PRIORITY ;w++)
-                                {
-                                    checkFA[w][ksc] = false;
-                                }
-                             }
-                           else if(synonymCount[ksc]>0)
-                           {
                             for(int sc= 0;sc<synonymCount[ksc];sc++)
                             {
                                 string synKeyword = synonyms[ksc][sc];
@@ -237,6 +215,32 @@ public:
                                 }
                             }
                            }
+                            curKeyword = keywords[ksc];
+
+                           if((string(word) == curKeyword))
+                            {
+                                foundword[ksc] = true;
+                                foundCW[0] = true;
+                                FCW++;
+                                priority1[fileCount][1]++;
+                                for(int cw =1;cw<=wordNo;cw++)
+                                {
+                                    if(FCW >= cw)
+                                    {
+                                        foundCW[FCW] = true;
+                                        priority1[fileCount][FCW]++;
+                                    }
+                                    else
+                                        break;
+                                }
+
+                                priority2[fileCount][ksc] +=1;
+                                for(int w=0;w<=WORD_PRIORITY ;w++)
+                                {
+                                    checkFA[w][ksc] = false;
+                                }
+                             }
+
 
                             else if(checkFA[0][ksc] && curKeyword.size() >MAX_COMP_INCOS_STR_LEN && (curKeyword.size() == string(word).size()))
                             {  //check for alternatives to the current keyword

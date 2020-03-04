@@ -14,8 +14,8 @@
 
 const int  WID = 700;
 const int  HEI = 650;
-const int  INI_X = 350;    //335
-const int  INI_Y = 70;  //25
+const int  INI_X = 350;
+const int  INI_Y = 70;
 const int  WC_R = 0.094;
 const float WC_G = 0.157;
 const float WC_B = 0.4;
@@ -246,6 +246,7 @@ namespace WelcomePage
 {
     void mouse(int x, int y)
     {
+        //std::cout<<y;
         if((x>=365 && x<=490) && (y>=570 && y<=615))
         {
             pageNo=LOGIN_P;
@@ -420,6 +421,7 @@ namespace Todo
         {
             if((dx>todo_x+10 && dx<todo_x+12.4) && (dy<todo_y-2.5-(static_cast<float>(i)/2) && dy>todo_y-(static_cast<float>(i)/2)-2.9))
             {
+                //
                 std::cout<<files[i];
                 std::remove((userName+"\\\\Todo\\\\"+files[i]+".txt").c_str());
             }
@@ -590,7 +592,7 @@ void mouseclicked(int button,int state,int a,int b)
 }
 void passMouse(int x, int y)
 {
-    if((x<=680 && x>=635) && (y>=15 && y<=40) && pageNo==LOGIN_P) //EXIT BUTTON
+    if((x<=680 && x>=615) && (y>=15 && y<=40) && pageNo==LOGIN_P) //EXIT BUTTON
     {
         glutSetCursor(GLUT_CURSOR_HELP);
         mouseAtExit=true;
@@ -619,6 +621,8 @@ void windows::welcomePage()
     glColor3f(1,1,0);
     glDrawP(lx+.5,ly+.5,3.5,1.5);
     glDrawP(lx+4.5,ly+.5,4,1.5);
+    printText(-2.1,3,"C++ Genie",GLUT_BITMAP_TIMES_ROMAN_24,1,1,0);
+    printText(-2.9,2.2,"Local Storage System",GLUT_BITMAP_HELVETICA_18,1,1,0);
     printText(lx-7.3,lyt+1,"DEVELOPED BY:",GLUT_BITMAP_HELVETICA_18,1,1,1);
     printText(lx-7.3,lyt+.1,"Ravi Pandey",GLUT_BITMAP_HELVETICA_18,1,1,1);
     printText(lx-7.3,lyt-.85,"Rohan Chhetry",GLUT_BITMAP_HELVETICA_18,1,1,1);
@@ -808,7 +812,7 @@ void windows::todoScreen()
     //use of *file,numFile,i
     if(showTodo)
     {
-            todo.addTodo(); std::cout<<"\nfile made\n";
+            todo.addTodo(); //std::cout<<"\nfile made\n";
             todo.readTodo();
             showTodo=false;
             showTodoList=true;
@@ -831,7 +835,7 @@ void windows::todoScreen()
             {
                 printText(todo_x-1,todo_y-1,"TODO LIST",GLUT_BITMAP_TIMES_ROMAN_24,1,1,1);
                 printText(todo_x-0.5,todo_y-2,"Tasks\t\t\t\t",GLUT_BITMAP_HELVETICA_18,1,1,1);
-                printText(todo_x+4,todo_y-2,"Due Date",GLUT_BITMAP_HELVETICA_18,1,1,1);
+                printText(todo_x+5.5,todo_y-2,"Due Date",GLUT_BITMAP_HELVETICA_18,1,1,1);
                 for(int popper=0;popper<4;popper++)
                     files[i].pop_back();
 
@@ -842,7 +846,7 @@ void windows::todoScreen()
                     glDrawP(todo_x+10,todo_y-2.3-static_cast<float>(i)/2,2.4,0.4);
                 }
                 printText(todo_x-0.5,todo_y-2.5-(0.5*i),(files[i]).c_str(),GLUT_BITMAP_8_BY_13,1,1,1);
-                printText(todo_x+4,todo_y-2.5-(0.5*i),(task[i]).c_str(),GLUT_BITMAP_8_BY_13,1,1,1);
+                printText(todo_x+5.5,todo_y-2.5-(0.5*i),(task[i]).c_str(),GLUT_BITMAP_8_BY_13,1,1,1);
                 printText(todo_x+10.15,todo_y-2.6-(0.5*i)," Delete",GLUT_BITMAP_8_BY_13,1,1,1);
             }
         }
@@ -857,6 +861,7 @@ void addMenu()
         glutAddMenuEntry("Edit File", EDIT_FILE);
         glutAddMenuEntry("Delete File", DELETE_FILE);
         glutAddMenuEntry("Add Existing File",ADD_FILE);
+        glutAddMenuEntry("Rename File",RENAME_FILE);
 
 }
 void activateMenu()

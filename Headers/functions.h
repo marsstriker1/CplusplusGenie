@@ -1,5 +1,4 @@
 #include <GL/glut.h>
-
 const float CHAR_WIDTH = 0.2667;
 
 void printText(float x, float y,const char * text,void *font,float r,float g, float b)

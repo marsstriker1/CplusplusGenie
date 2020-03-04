@@ -22,7 +22,7 @@ const float SSYNB_X2 = SSYNB_X1-1.5;
 const float SSYNB_Y2 = SSYNB_Y1-1;
 
 const float SCBX_Y2 = -0.1*10;
-enum{ ADD_FILE, EDIT_FILE, DELETE_FILE ,CREATE_FILE};
+enum{ ADD_FILE, EDIT_FILE, DELETE_FILE ,CREATE_FILE,RENAME_FILE};
 
 namespace SearchWindow
 {
@@ -35,6 +35,7 @@ namespace SearchWindow
     bool syn2 = false;
     bool wheelSelected = false;      //files scroll box wheel selected
     bool fbwheelSelected = false;     //feedback scroll wheel selected
+    bool addingfile = false;
     bool renamingfile = false;
 
     std::string keyword ("");
@@ -67,6 +68,7 @@ namespace SearchWindow
         filebox.setActive(false);
         dirbox.setActive(false);
         canMake = true;
+        addingfile = false;
         renamingfile = false;
         glutSetWindow(mainWindowIndex);
     }
@@ -91,11 +93,15 @@ namespace SearchWindow
     void render()
     {
         glClear(GL_COLOR_BUFFER_BIT);
-        if(renamingfile)
+        if(addingfile)
         {
             printText("ENTER FILE-NAME OF SOURCE FILE(eg. file.jpg)",-0.9,Y1+0.1,0.9,GLUT_BITMAP_8_BY_13);
             printText("ENTER DIRECTORY-PATH OF FILE ABOVE(eg. c:/dir1/dir2)",-0.95,Y2-0.15,0.95,GLUT_BITMAP_8_BY_13);
             dirbox.display();
+        }
+        else if(renamingfile)
+        {
+            printText("ENTER NAME TO RENAME THE FILE with correct extension",-0.95,Y1+0.1,0.95,GLUT_BITMAP_8_BY_13);
         }
         else
              printText("ENTER FILE-NAME TO CREATE TEXT FILE(eg. new)",-0.9,Y1+0.1,0.9,GLUT_BITMAP_8_BY_13);
@@ -106,12 +112,24 @@ namespace SearchWindow
 
     void OnKeyPressed(unsigned char key,int x,int y)
     {
-      if(renamingfile)
+      if(addingfile)
         dirbox.onKeyPressed(key);
-        filebox.onKeyPressed(key);
-      if(filebox.getActive() && key == 13)
+      filebox.onKeyPressed(key);
+      if(filebox.getActive() && key == 13 && !addingfile)
       {
+          if(!renamingfile)
+          {
             SearchWindow::createFile();
+          }
+          else
+          {
+                string newpath = string("./") + userName + string("/data/") + filebox.getText();
+                string oldpatn = string("./") + userName + string("/data/") + scbx.getActiveLine();
+                rename(oldpatn.data(),newpath.data());
+                filebox.setText("");
+                dirbox.setText("");
+                createFileBox();
+          }
             destroy();
       }
       if(dirbox.getActive() && key == 13 && filebox.getText().size()>4)
@@ -134,7 +152,7 @@ namespace SearchWindow
             xf = static_cast<float>(x)/200 - 1;
             yf = 1 - static_cast<float>(y)/100;
 
-             if(renamingfile)
+             if(addingfile)
                 dirbox.setActive(dirbox.mouseFunc(xf,yf));
              filebox.setActive(filebox.mouseFunc(xf,yf));
         }
@@ -194,10 +212,17 @@ namespace SearchWindow
             }
             case ADD_FILE:
             {
-               renamingfile = true;
+               addingfile = true;
             if(AddFileWindow::canMake)
                 AddFileWindow::create(glutGet(GLUT_WINDOW_X)+150,glutGet(GLUT_WINDOW_Y)+100);
             break;
+            }
+            case RENAME_FILE:
+            {
+                   renamingfile = true;
+                if(AddFileWindow::canMake)
+                    AddFileWindow::create(glutGet(GLUT_WINDOW_X)+150,glutGet(GLUT_WINDOW_Y)+100);
+                break;
             }
             default:
                 { break;     }
@@ -446,16 +471,28 @@ namespace SearchWindow
         else if(button == 3 && state == GLUT_UP )
         {
             if(scbx.isMouseOver(x,y))
+            {
                 scbx.decreaseWheelPos();
+                scbx.decActPos();
+            }
             else if(fbscbx.isMouseOver(x,y))
+            {
                 fbscbx.decreaseWheelPos();
+                fbscbx.decActPos();
+            }
         }
         else if(button == 4 && state == GLUT_UP)
         {
             if(scbx.isMouseOver(x,y))
+            {
                 scbx.increaseWheelPos();
+                scbx.incActPos();
+            }
             else if(fbscbx.isMouseOver(x,y))
+            {
                 fbscbx.increaseWheelPos();
+                fbscbx.incActPos();
+            }
         }
     }
 

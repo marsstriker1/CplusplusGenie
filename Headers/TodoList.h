@@ -100,7 +100,7 @@ string createDirectory1()
 
         if(d2.exists())
         {
-            std::cout<<"\ndirectory already exists";
+            //std::cout<<"\ndirectory already exists";
         }
         else
         {

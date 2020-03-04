@@ -65,7 +65,7 @@ public:
          lines = new string[nooflines];
          for(int i=0 ,sc=0;sc<stringsize;i++,sc++)
          {
-             if(inlin[sc].size()<maxletter)
+             if(inlin[sc].size()<=maxletter)
              {
                 lines[i] = inlin[sc];
              }
@@ -130,6 +130,16 @@ public:
         wheel_Y1 = Y1-wheelheight*wheelpos;
         wheel_Y2 = wheel_Y1-wheelheight;
         }
+    }
+    void incActPos()
+    {
+        if(activeline<nooflines-1)
+            activeline++;
+    }
+    void decActPos()
+    {
+        if(activeline>0)
+            activeline--;
     }
     void resetActivePos()
     {
