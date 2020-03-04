@@ -1,0 +1,15 @@
+-------------------------------------------------SETTING UP THE LIBRARY-------------------------------------------------------------------------
+
+The "freeglut.dll" binary file should be placed in the Windows Folder present in the drive in which the O.S is installed.
+
+The "lib" and "include" folders of the freeglut library should be merged with the "lib" and "include" folder of the MinGW compiler.
+
+To use this library in CodeBlocks IDE the "wizard.script" file presnt in "...CodeBlocks\share\CodeBlocks\templates\wizard\glut" must be replaced 
+with the "wizard.script" file supplied in the freeglut folder. 
+
+In order to compiler our "main.cpp" we recommend adding the following link libraries in the linker settings of CodeBlocks:-
+-freeglut
+-opengl32
+-glu32
+-winmm
+-gdi32
