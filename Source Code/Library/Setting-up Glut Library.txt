@@ -13,3 +13,8 @@ In order to compiler our "main.cpp" we recommend adding the following link libra
 -glu32
 -winmm
 -gdi32
+
+For this specific project, we recommen C++17.
+
+*******************************************************************************************************************************************
+In case of error during building, we have included additional informations in the "Additional Information" Folder.
