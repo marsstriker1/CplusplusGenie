@@ -1,4 +1,8 @@
--------------------------------------------------SETTING UP THE LIBRARY-------------------------------------------------------------------------
+# C++ Genie
+One place to store and manage all your files and books and comes with a built-in to-do list feature 
+
+## SETTING UP THE LIBRARY
+
 Freeglut library folder is included inside the Library folder.
 
 The "freeglut.dll" binary file should be placed in the Windows Folder present in the drive in which the O.S is installed.
@@ -15,7 +19,7 @@ In order to compiler our "main.cpp" we recommend adding the following link libra
 -winmm
 -gdi32
 
-For this specific project, we recommend C++17.
+### For this specific project, we recommend C++17.
 
 *******************************************************************************************************************************************
 In case of error during building, we have included additional informations in the "Additional Information" Sub-Folder of Library Folder.
